@@ -1,0 +1,154 @@
+* One Time Check List:
+    * Make sure all the folder and file paths match the directory of your local path. 
+
+* Every-USE Check List:
+    * Make sure to ALWAYS provide a name for the final Export File. That's in line 39 of the last but one code block
+
+import os
+import win32com.client as win32
+
+
+# Specify the path of the folder containing the password-protected Excel files
+folder_path = r"C:\Users\ricky\files\Password Remover\Original"
+
+# Specify the path of the folder where the modified Excel files will be saved
+output_folder = r'C:\Users\ricky\files\Password Remover\temp'
+
+# Specify the password for the Excel files
+password = '123456'
+
+# Create an Excel application object
+excel_app = win32.gencache.EnsureDispatch('Excel.Application')
+
+# Iterate through each file in the folder
+for filename in os.listdir(folder_path):
+    if filename.endswith('.xlsx'):
+        file_path = os.path.join(folder_path, filename)
+        
+        # Open the Excel file using the password
+        try:
+            workbook = excel_app.Workbooks.Open(file_path, False, True, None, password)
+        except Exception as e:
+            print(f"Failed to open '{filename}': {str(e)}")
+            continue
+        
+        # Create a new workbook to save the modified Excel file
+        new_workbook = excel_app.Workbooks.Add()
+        
+        # Iterate through each sheet in the workbook
+        for sheet in workbook.Sheets:
+            sheet_name = sheet.Name
+            
+            # Copy the content of the sheet
+            sheet.Copy(new_workbook.Sheets(1))
+        
+        # Save the modified Excel file in the output folder with a modified name
+        modified_filename = filename.replace('.xlsx', '_modified.xlsx')
+        output_file_path = os.path.join(output_folder, modified_filename)
+
+        try:
+            new_workbook.SaveAs(output_file_path,FileFormat=51)
+            new_workbook.Close()
+            workbook.Close(False)  # Close the original workbook without saving changes
+            print(f"Saved '{filename}' as '{output_file_path}'")
+        except Exception as e:
+            print(f"Failed to save '{filename}': {str(e)}")
+        
+# Close the Excel application
+excel_app.Quit()
+
+# Delete Original Files from the 'Original' Folder
+
+# Get all the file names in the folder
+file_names = os.listdir(folder_path)
+
+# Iterate through each file and delete them
+for file_name in file_names:
+    try:
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        elif os.path.isdir(file_path):
+            os.rmdir(file_path)
+    except Exception as e:
+        print(f"Failed to delete '{file_name}': '{str(e)}')")
+        continue
+    print(f"'{file_name} deleted successfully")
+
+# Renaming Processed Files to Original names
+* Pay attention to the folder paths. Amend the paths accordingly
+
+import shutil
+
+output_folder = r"C:\Users\ricky\files\Password Remover\temp" #copy and paste the directory of the temp folder within the  Password Remover folder
+new_folder = r'C:\Users\ricky\files\Password Remover\temp'  #copy and paste the directory of the temp folder within the  Password Remover folder
+
+file_names = os.listdir(output_folder)
+
+for file_name in file_names:
+    if file_name.endswith('_modified.xlsx'):
+        new_file_name = file_name.replace('_modified.xlsx', '.xlsx')
+        source_path = os.path.join(output_folder, file_name)
+        destination_path = os.path.join(new_folder, new_file_name)
+        shutil.move(source_path, destination_path)
+
+# Moving and Processing Files
+* Pay attention to folder paths. Amend accordingly.
+
+new_folder = r'C:\Users\ricky\files\Password Remover\temp'  #copy and past the directory of the temp folder within the  Password Remover folder 
+file_names = os.listdir(new_folder)
+header = r'C:\Users\ricky\files\Password Remover\Processed\Header' #this is the output of all header files. Make sure to adjust the directory by checking the location of your local folder
+item = r'C:\Users\ricky\files\Password Remover\Processed\Item' #this is the output of all item files. Make sure to adjust the directory by checking the location of your local folder
+export = r'C:\Users\ricky\files\Password Remover\Processed\Exports' #this is the output of all export files BUT export files will be compressed in the next step into a single file. Make sure to adjust the directory by checking the location of your local folder
+
+for file_name in file_names:
+    if file_name.__contains__('Import_Header_'):
+        source_path = os.path.join(new_folder,file_name)
+        header_path = os.path.join(header,file_name)
+        shutil.move(source_path,header_path)
+    elif file_name.__contains__('Import_Item_'):
+        source_path = os.path.join(new_folder, file_name)
+        item_path = os.path.join(item,file_name)
+        shutil.move(source_path,item_path)
+    elif file_name.__contains__('Export_Item'):
+        source_path = os.path.join(new_folder, file_name)
+        export_path = os.path.join(export, file_name)
+        shutil.move(source_path,export_path)
+
+# Creating a single Export File out of the multiple export files.
+* Pay attention to the paths . MAKE SURE YOU RENAME THE FILE accordingly.
+
+
+from glob import glob
+import pandas as pd
+
+export_folder_path = glob(r'C:\Users\ricky\files\Password Remover\Processed\Exports\*')
+
+files = []
+for file in export_folder_path:
+    # Read the 'Main' sheet if available, otherwise read the 'Supplimentary' sheet
+    try:
+        df = pd.read_excel(file, sheet_name='Main')
+    except:
+        df = pd.read_excel(file, sheet_name='Supplimentary')
+    
+    files.append(df)
+    export = pd.concat(files).reset_index(drop=True)
+
+
+
+with pd.ExcelWriter(r'C:\Users\ricky\files\Password Remover\Processed\Export File\Company Exports August 2024.xlsx') as writer: #ALWAYS MAKE SURE to rename the file based on the month and year of the transactions. For example Company Exports Feb 2024
+    export.to_excel(writer)
+
+
+# Deleting the Processed Files from the Exports Folder
+* Pay attention to the folder path in line 3 and amend accordingly 
+
+import os 
+folder_path = r'C:\Users\icky\files\Password Remover\Processed\Exports' #Make sure to adjust the directory by checking the location of your local folder
+
+file_names = os.listdir(folder_path)
+
+for file in file_names:
+    file_path = os.path.join(folder_path,file)
+    os.remove(file_path) 
