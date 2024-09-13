@@ -145,7 +145,7 @@ with pd.ExcelWriter(r'C:\Users\ricky\files\Password Remover\Processed\Export Fil
 * Pay attention to the folder path in line 3 and amend accordingly 
 
 import os 
-folder_path = r'C:\Users\icky\files\Password Remover\Processed\Exports' #Make sure to adjust the directory by checking the location of your local folder
+folder_path = r'C:\Users\ricky\files\Password Remover\Processed\Exports' #Make sure to adjust the directory by checking the location of your local folder
 
 file_names = os.listdir(folder_path)
 
